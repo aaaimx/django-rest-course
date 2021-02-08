@@ -15,14 +15,31 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls import url
+
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from aaaimx.views import GroupView
+from aaaimx.views import GroupView, UserViewSet
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="DRF API",
+      default_version='v1',
+      description="Test description",
+      contact=openapi.Contact(email="raul.novelo@aaaimx.org"),
+      license=openapi.License(name="MIT License"),
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
+)
 
 router = routers.DefaultRouter()
-# router.register()
+router.register(r'users', UserViewSet)
 
 auth_urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -32,6 +49,8 @@ auth_urlpatterns = [
 api_urlpatterns = [
     path('', include(router.urls)),
     path('auth/', include(auth_urlpatterns)),
+    url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    url(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
 
 urlpatterns = [
